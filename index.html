@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ILIA — Add Bank</title>
+<style>
+  :root{
+    --blue:#2f6fed; --blue-d:#245bd0; --blue-l:#eaf1fe;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f4f6fa;
+    --ok:#16a34a; --warn:#b45309; --red:#dc2626; --field:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;background:#f5f6f8;border-bottom:1px solid var(--line);padding:14px 22px}
+  .topbar .left{display:flex;align-items:center;gap:16px}
+  .burger{font-size:22px;color:#4b5563;cursor:pointer;line-height:1}
+  .brand{font-weight:700;color:var(--blue);letter-spacing:.5px}
+  .welcome{color:#374151}
+  .welcome b{color:#111827}
+  /* header row */
+  .wrap{max-width:1080px;margin:0 auto;padding:22px}
+  .crumbs{font-size:13px;font-weight:700;letter-spacing:.6px;color:var(--blue);margin:6px 2px 18px}
+  .crumbs .sep{color:#9ca3af;margin:0 6px}
+  .crumbs .cur{color:#6b7280}
+  /* card */
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 3px rgba(16,24,40,.06);overflow:hidden}
+  .card-h{padding:22px 26px 6px}
+  .card-h h1{margin:0;font-size:22px;color:#111827}
+  .card-h p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:70ch}
+  .section{padding:10px 26px 4px}
+  .section-title{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#374151}
+  .section-title .dot{width:22px;height:22px;border-radius:50%;background:var(--blue-l);color:var(--blue);display:grid;place-items:center;font-size:12px;font-weight:800}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px}
+  .grid .full{grid-column:1 / -1}
+  .grid .half{grid-column:span 1}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .fld label{display:block;font-size:12.5px;font-weight:600;color:#374151;margin-bottom:5px}
+  .fld label .req{color:var(--red);margin-left:2px}
+  .fld input,.fld select,.fld textarea{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:9px;font-size:14px;background:var(--field);color:var(--ink);outline:none;transition:border .15s,box-shadow .15s}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,111,237,.15)}
+  .fld .hint{font-size:11.5px;color:#9ca3af;margin-top:4px}
+  .fld.err input,.fld.err select{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.12)}
+  .fld .msg{display:none;color:var(--red);font-size:11.5px;margin-top:4px}
+  .fld.err .msg{display:block}
+  textarea{resize:vertical;min-height:64px}
+  .divider{height:1px;background:var(--line);margin:8px 0 0}
+  /* invite box */
+  .invite{margin-top:14px;border:1px dashed #c7d2fe;background:#f8faff;border-radius:11px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+  .invite input{width:18px;height:18px;margin-top:2px;accent-color:var(--blue)}
+  .invite .t{font-weight:600;font-size:14px}
+  .invite .s{color:var(--muted);font-size:12.5px;margin-top:3px}
+  /* footer actions */
+  .actions{display:flex;justify-content:flex-end;gap:12px;padding:20px 26px 24px;background:#fbfcfe;border-top:1px solid var(--line);margin-top:18px}
+  .btn{border:none;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn.ghost{background:#fff;border:1px solid #d1d5db;color:#374151}
+  .btn.ghost:hover{background:#f3f4f6}
+  .btn.primary{background:var(--blue);color:#fff;display:inline-flex;align-items:center;gap:8px}
+  .btn.primary:hover{background:var(--blue-d)}
+  .note{max-width:1080px;margin:14px auto 40px;color:#9ca3af;font-size:12px;text-align:center}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:16px;max-width:520px;width:100%;padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .modal .ic{width:52px;height:52px;border-radius:50%;background:#dcfce7;color:var(--ok);display:grid;place-items:center;font-size:26px;margin:0 auto 12px}
+  .modal h2{margin:0 0 6px;text-align:center;font-size:20px}
+  .modal p{margin:0 auto;text-align:center;color:var(--muted);font-size:14px;max-width:42ch}
+  .summary{background:#f9fafb;border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin:18px 0}
+  .summary div{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+  .summary div span:first-child{color:var(--muted)}
+  .summary div span:last-child{font-weight:600;text-align:right;max-width:60%}
+  .pill{display:inline-block;background:var(--blue-l);color:var(--blue);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .modal .actions2{display:flex;justify-content:center;margin-top:6px}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#fef3c7;color:#92400e;margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="left"><span class="burger">&#9776;</span><span class="brand">ILIA</span></div>
+    <div class="welcome">Welcome! <b>Jamin</b></div>
+  </div>
+
+  <div class="wrap">
+    <div class="crumbs">ACCOUNT MANAGEMENT <span class="sep">/</span> ADMIN <span class="sep">/</span> <span class="cur">ADD BANK</span> <span class="badge">PROTOTYPE</span></div>
+
+    <form class="card" id="bankForm" novalidate>
+      <div class="card-h">
+        <h1>Add Bank</h1>
+        <p>Enter the bank's details and primary administrator to onboard a new lending institution to ILIA. Once created, the bank can be tied to programs, tranches, and case operations, and its administrator can be invited to the ILIA Bank Portal.</p>
+      </div>
+
+      <!-- SECTION 1: BANK DETAILS -->
+      <div class="section">
+        <div class="section-title"><span class="dot">1</span> Bank Details</div>
+        <div class="grid">
+          <div class="fld half" data-req>
+            <label>Bank Legal Name <span class="req">*</span></label>
+            <input name="legalName" placeholder="e.g. First Financial Bank, N.A.">
+            <div class="msg">Required.</div>
+          </div>
+          <div class="fld half">
+            <label>Display / Short Name</label>
+            <input name="displayName" placeholder="e.g. First Financial">
+            <div class="hint">Shown in dropdowns and case screens.</div>
+          </div>
+          <div class="fld half" data-req>
+            <label>Bank Role <span class="req">*</span></label>
+            <select name="role">
+              <option value="">Select role…</option>
+              <option>Lender — Premium Finance (Kai-Zen)</option>
+              <option>Lender — Traditional</option>
+              <option>Trustee Bank</option>
+              <option>Custodian</option>
+            </select>
+            <div class="msg">Required.</div>
+          </div>
+          <div class="fld half">
+            <label>EIN / Tax ID</label>
+            <input name="ein" placeholder="XX-XXXXXXX">
+          </div>
+          <div class="fld half">
+            <label>Main Phone</label>
+            <input name="phone" placeholder="(555) 555-5555">
+          </div>
+          <div class="fld half">
+            <label>Website</label>
+            <input name="website" placeholder="https://">
+          </div>
+          <div class="fld full">
+            <label>Address</label>
+            <input name="addr1" placeholder="Street address">
+          </div>
+          <div class="fld half">
+            <label>City</label>
+            <input name="city" placeholder="City">
+          </div>
+          <div class="fld half">
+            <div class="grid" style="gap:12px">
+              <div><label>State</label><input name="state" placeholder="ST"></div>
+              <div><label>ZIP</label><input name="zip" placeholder="00000"></div>
+            </div>
+          </div>
+          <div class="fld half" data-req>
+            <label>Status <span class="req">*</span></label>
+            <select name="status">
+              <option>Active</option>
+              <option>Inactive</option>
+              <option>Pending Setup</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: LENDING / PROGRAM DETAILS -->
+      <div class="section">
+        <div class="section-title"><span class="dot">2</span> Lending &amp; Program Details</div>
+        <div class="grid">
+          <div class="fld half">
+            <label>Associated Program(s)</label>
+            <select name="program">
+              <option>Kai-Zen</option>
+              <option>Traditional</option>
+              <option>Kai-Zen + Traditional</option>
+              <option>Not applicable (Trustee/Custodian)</option>
+            </select>
+          </div>
+          <div class="fld half">
+            <label>Loan Rate Index</label>
+            <select name="rateIndex">
+              <option>SOFR</option>
+              <option>WSJ Prime</option>
+              <option>1-Yr Treasury</option>
+              <option>Other / Fixed</option>
+            </select>
+          </div>
+          <div class="fld half">
+            <label>Rate Spread (bps)</label>
+            <input name="spread" placeholder="e.g. 175">
+          </div>
+          <div class="fld half">
+            <label>Rate Reset Frequency</label>
+            <select name="reset">
+              <option>Annual</option>
+              <option>Semi-annual</option>
+              <option>Quarterly</option>
+              <option>Monthly</option>
+            </select>
+          </div>
+          <div class="fld full">
+            <label>Lending Notes</label>
+            <textarea name="notes" placeholder="Loan terms, funding cadence, tranche participation, or any special handling for this bank."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: BANK ADMINISTRATOR -->
+      <div class="section">
+        <div class="section-title"><span class="dot">3</span> Bank Administrator (Primary Contact)</div>
+        <div class="grid">
+          <div class="fld half" data-req>
+            <label>First Name <span class="req">*</span></label>
+            <input name="adminFirst" placeholder="First name">
+            <div class="msg">Required.</div>
+          </div>
+          <div class="fld half" data-req>
+            <label>Last Name <span class="req">*</span></label>
+            <input name="adminLast" placeholder="Last name">
+            <div class="msg">Required.</div>
+          </div>
+          <div class="fld half">
+            <label>Title</label>
+            <input name="adminTitle" placeholder="e.g. VP, Lending">
+          </div>
+          <div class="fld half" data-req>
+            <label>Email <span class="req">*</span></label>
+            <input name="adminEmail" placeholder="name@bank.com">
+            <div class="msg">Valid email required.</div>
+          </div>
+          <div class="fld half" data-req>
+            <label>Phone <span class="req">*</span></label>
+            <input name="adminPhone" placeholder="(555) 555-5555">
+            <div class="msg">Required.</div>
+          </div>
+        </div>
+        <label class="invite">
+          <input type="checkbox" name="invite" checked>
+          <span>
+            <span class="t">Send ILIA Bank Portal invitation to this administrator</span>
+            <span class="s">On create, ILIA emails the administrator an invitation to register for the Bank Portal (same onboarding pattern as new agents). Until they register, the bank shows a <b>Pending Admin Onboarding</b> status.</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn ghost" onclick="location.reload()">Cancel</button>
+        <button type="submit" class="btn primary">&#43;&nbsp; Create Bank</button>
+      </div>
+    </form>
+
+    <div class="note">Prototype only — no data is saved. Fields and sections are a first-draft proposal for review. ILIA · Account Management · Add Bank.</div>
+  </div>
+
+  <!-- SUCCESS MODAL -->
+  <div class="overlay" id="ovl">
+    <div class="modal">
+      <div class="ic">&#10003;</div>
+      <h2>Bank Created</h2>
+      <p id="modalSub">The bank has been added to ILIA.</p>
+      <div class="summary" id="summary"></div>
+      <div class="actions2"><button class="btn primary" onclick="document.getElementById('ovl').classList.remove('show')">Done</button></div>
+    </div>
+  </div>
+
+<script>
+  const form = document.getElementById('bankForm');
+  const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    let ok = true;
+    document.querySelectorAll('.fld[data-req]').forEach(f=>{
+      const c = f.querySelector('input,select');
+      let bad = !c.value.trim();
+      if(c.name==='adminEmail' && c.value.trim() && !emailOk(c.value.trim())) bad = true;
+      f.classList.toggle('err', bad);
+      if(bad) ok = false;
+    });
+    if(!ok){ const first=document.querySelector('.fld.err'); if(first) first.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+    const d = Object.fromEntries(new FormData(form).entries());
+    const invited = form.invite.checked;
+    const sub = document.getElementById('modalSub');
+    sub.innerHTML = invited
+      ? 'The bank has been added to ILIA and a Bank Portal invitation was sent to the administrator.'
+      : 'The bank has been added to ILIA.';
+    const rows = [
+      ['Bank', d.displayName || d.legalName || '—'],
+      ['Role', d.role || '—'],
+      ['Program', d.program || '—'],
+      ['Status', invited ? 'Pending Admin Onboarding' : (d.status||'—')],
+      ['Administrator', ((d.adminFirst||'')+' '+(d.adminLast||'')).trim() || '—'],
+      ['Portal invite', invited ? 'Sent ✓' : 'Not sent']
+    ];
+    document.getElementById('summary').innerHTML = rows.map(r=>`<div><span>${r[0]}</span><span>${r[1]}</span></div>`).join('');
+    document.getElementById('ovl').classList.add('show');
+  });
+
+  // clear error styling as the user fixes a field
+  document.querySelectorAll('.fld[data-req] input,.fld[data-req] select').forEach(el=>{
+    el.addEventListener('input', ()=> el.closest('.fld').classList.remove('err'));
+    el.addEventListener('change', ()=> el.closest('.fld').classList.remove('err'));
+  });
+</script>
+</body>
+</html>
